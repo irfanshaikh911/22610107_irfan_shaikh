@@ -1,0 +1,209 @@
+CC PRACTICALS — FINAL LAB MASTER GUIDE
+
+
+1. Install VirtualBox / VMware Workstation + Install OS
+
+Steps:
+- Download VirtualBox from https://www.virtualbox.org
+- Install VirtualBox.
+- Download Ubuntu ISO from https://ubuntu.com/download
+- Create VM: Open VirtualBox → New → Set RAM, Hard Disk.
+- Mount ISO and install OS.
+
+Precautions:
+- Enable VT-x/AMD-V in BIOS.
+- Allocate enough RAM/CPU.
+
+
+2. Install and Configure Google App Engine (GAE)
+
+Steps:
+- Install Google Cloud SDK: https://cloud.google.com/sdk/docs/install
+- Initialize: gcloud init
+- Create Directory: mkdir helloworld && cd helloworld
+- Create app.yaml and main.py
+- Deploy: gcloud app deploy
+- Browse: gcloud app browse
+
+Precautions:
+- Python 2.7 must be installed (for classic runtime) or Python 3 (for latest runtime).
+
+Files needed for GAE deployment:
+
+If using Python 2.7:
+
+**app.yaml**
+```yaml
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /.*
+  script: main.app
+```
+
+**main.py**
+```python
+import webapp2
+
+class MainPage(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write('Hello, World!')
+
+app = webapp2.WSGIApplication([
+    ('/', MainPage),
+], debug=True)
+```
+
+If using Python 3.x:
+
+**app.yaml**
+```yaml
+runtime: python39
+entrypoint: gunicorn -b :$PORT main:app
+
+instance_class: F1
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1
+  max_instances: 2
+
+handlers:
+- url: /.*
+  script: auto
+```
+
+**main.py**
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+    return 'Hello, World!'
+```
+
+Command for deployment:
+```bash
+gcloud init
+gcloud app create
+gcloud app deploy
+gcloud app browse
+```
+
+
+3. Install Hadoop Single Node Cluster
+
+Steps:
+- Install Java: sudo apt install openjdk-8-jdk
+- Download Hadoop: wget + tar extract
+- Set ~/.bashrc:
+  export HADOOP_HOME=~/hadoop
+  export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+- Configure core-site.xml, hdfs-site.xml, mapred-site.xml, yarn-site.xml
+- Format namenode: hdfs namenode -format
+- Start: start-dfs.sh & start-yarn.sh
+- Check: jps
+
+Precautions:
+- JAVA_HOME must be set properly.
+
+
+4. Create MapReduce WordCount Program
+
+Java:
+- Write WordCount.java
+- Compile: javac -classpath $(hadoop classpath) -d wordcount_classes WordCount.java
+- Package: jar -cvf wordcount.jar -C wordcount_classes/ .
+- Upload input: hdfs dfs -mkdir /input && hdfs dfs -put inputfile.txt /input
+- Run: hadoop jar wordcount.jar WordCount /input /output
+- View: hdfs dfs -cat /output/part-00000
+
+Python:
+- Create mapper.py and reducer.py
+- Run: cat input.txt | python3 mapper.py | sort | python3 reducer.py
+
+Precautions:
+- Always remove previous /output folder before re-run.
+
+
+5. Network Virtualization Using VirtualBox
+
+Steps:
+- VM Settings → Network.
+- Choose NAT, Bridged, Host-only or Internal Network.
+- (Optional) Set Static IP inside VM.
+
+Precautions:
+- Use Bridged for real network access.
+- Use Host-only for isolated lab setup.
+
+
+6. Install KVM Virtualization
+
+Steps:
+- sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager
+- Verify: virsh list --all
+- Start: virt-manager
+
+Precautions:
+- CPU must support virtualization (check: egrep -c '(vmx|svm)' /proc/cpuinfo)
+
+
+7. Install and Configure Docker & Kubernetes
+
+Docker:
+- sudo apt install docker.io
+- sudo systemctl start docker
+- sudo systemctl enable docker
+
+Kubernetes:
+- Install kubeadm, kubelet, kubectl.
+- Disable swap: sudo swapoff -a
+- Initialize: sudo kubeadm init
+- Set kubeconfig
+- Apply network plugin: kubectl apply -f flannel.yml
+
+Precautions:
+- Swap must be OFF.
+
+
+8. Launch VM in AWS EC2
+
+Steps:
+- AWS Console → EC2 → Launch Instance.
+- Select Ubuntu/Amazon Linux.
+- Create Key Pair (.pem).
+- Open SSH (port 22).
+- Connect: ssh -i your-key.pem ubuntu@public-ip
+
+Precautions:
+- Save .pem file securely.
+
+
+9. File Transfer from VM to VM (Windows)
+
+Methods:
+- Shared Folders in VirtualBox.
+- Windows Network Share.
+- scp command (Linux): scp file.txt username@ip:/destination/path/
+
+Precautions:
+- Firewall settings might block file sharing.
+- Correct user and IP required.
+
+
+Quick Checklist Before Lab:
+- VirtualBox installed.
+- Hadoop started.
+- WordCount working.
+- Docker and Kubernetes verified.
+- AWS account ready.
+- Correct VM network setup.
+- GAE deployed successfully.
+
+
+**Good Luck! Follow this guide and your CC lab will be super smooth!**
